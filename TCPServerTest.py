@@ -1,4 +1,3 @@
-# Put this code in your raspberry pi.
 import socket
 import cv2
 import numpy as np
@@ -8,7 +7,7 @@ from picamera2 import Picamera2
 
 # Initialize the camera
 picam2 = Picamera2()
-picam2.preview_configuration.main.size = (640, 480)  # Set desired resolution
+picam2.preview_configuration.main.size = (320, 240)  # Set desired resolution
 picam2.preview_configuration.main.format = "RGB888"  # Set to RGB888
 picam2.preview_configuration.align()
 picam2.configure("preview")
