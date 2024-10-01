@@ -1,23 +1,28 @@
-# Put this code on your Raspberry Pi
 import socket
 import cv2
 import numpy as np
 import struct
 import pickle
 from picamera2 import Picamera2
-import threading
 
-# Initialize the camera
-picam2 = Picamera2()
-picam2.preview_configuration.main.size = (320, 240)  # Set desired resolution
-picam2.preview_configuration.main.format = "RGB888"  # Set to RGB888
-picam2.preview_configuration.align()
-picam2.configure("preview")
-picam2.start()
+# Initialize both cameras
+picam_left = Picamera2(camera_num=0)
+picam_left.preview_configuration.main.size = (320, 240)
+picam_left.preview_configuration.main.format = "RGB888"
+picam_left.preview_configuration.align()
+picam_left.configure("preview")
+picam_left.start()
+
+picam_right = Picamera2(camera_num=1)
+picam_right.preview_configuration.main.size = (320, 240)
+picam_right.preview_configuration.main.format = "RGB888"
+picam_right.preview_configuration.align()
+picam_right.configure("preview")
+picam_right.start()
 
 # Initialize socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 8080))  # Bind to any address on port 8080
+server_socket.bind(('0.0.0.0', 8080))
 server_socket.listen(1)
 
 print("Waiting for a connection...")
@@ -26,44 +31,34 @@ print(f"Connection from: {addr}")
 
 frame_count = 0
 
-def listen_for_client_messages():
-    while True:
-        try:
-            # Receive data from client
-            message = conn.recv(1024)
-            if message:
-                print("Received message from client:", message.decode())
-                if message == b"Hello":
-                    print("Hello from client")
-        except (ConnectionResetError, BrokenPipeError):
-            print("Client disconnected.")
-            break
-
-# Start a thread to listen for client messages
-listener_thread = threading.Thread(target=listen_for_client_messages)
-listener_thread.start()
-
 try:
     while True:
-        # Capture frame from the camera, sending every 5th frame
+        # Capture frame from both cameras, sending every 5th frame
         if frame_count % 5 == 0:
-            frame = picam2.capture_array()
+            frame_left = picam_left.capture_array()
+            frame_right = picam_right.capture_array()
 
-            # Compress the frame as JPEG
-            _, frame_encoded = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-            # Serialize the encoded frame
-            data = pickle.dumps(frame_encoded)
-            # Pack the data length
-            message_size = struct.pack("Q", len(data))
+            # Compress both frames as JPEG
+            _, frame_encoded_left = cv2.imencode('.jpg', frame_left, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            _, frame_encoded_right = cv2.imencode('.jpg', frame_right, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            
+            # Serialize the encoded frames
+            data_left = pickle.dumps(frame_encoded_left)
+            data_right = pickle.dumps(frame_encoded_right)
 
-            # Send packed frame length followed by the frame data
-            conn.sendall(message_size + data)
+            # Pack the data lengths
+            message_size_left = struct.pack("Q", len(data_left))
+            message_size_right = struct.pack("Q", len(data_right))
 
+            # Send packed frame lengths followed by the frame data
+            conn.sendall(message_size_left + data_left + message_size_right + data_right)
+        
         frame_count += 1
 except (ConnectionResetError, BrokenPipeError):
     print("Client disconnected.")
 finally:
     # Cleanup
-    picam2.stop()
+    picam_left.stop()
+    picam_right.stop()
     conn.close()
     server_socket.close()
