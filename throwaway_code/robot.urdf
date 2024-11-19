@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<robot name="simple_claw_robot">
+
+  <!-- Base Link -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.3 0.3 .3"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Arm Segment 1 -->
+  <link name="arm_link1">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.3"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.0 0.0 1.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_link1"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <!-- Arm Segment 2 -->
+  <link name="arm_link2">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.3"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0.0 1.0 0.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="joint2" type="revolute">
+    <parent link="arm_link1"/>
+    <child link="arm_link2"/>
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <!-- Arm Segment 3 -->
+  <link name="arm_link3">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.25"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="1.0 1.0 0.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="joint3" type="revolute">
+    <parent link="arm_link2"/>
+    <child link="arm_link3"/>
+    <origin xyz="0 0 0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <!-- Claw Base Link -->
+  <link name="claw_base">
+    <visual>
+      <geometry>
+        <cylinder radius="0.03" length="0.1"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="joint4" type="revolute">
+    <parent link="arm_link3"/>
+    <child link="claw_base"/>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <!-- Claw Finger 1 -->
+  <link name="claw_finger1">
+    <visual>
+      <geometry>
+        <box size="0.05 0.02 0.1"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.75 0.75 0.75 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="claw_joint1" type="revolute">
+    <parent link="claw_base"/>
+    <child link="claw_finger1"/>
+    <origin xyz="0.03 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="1.57" effort="1.0" velocity="1.0"/>
+  </joint>
+
+  <!-- Claw Finger 2 -->
+  <link name="claw_finger2">
+    <visual>
+      <geometry>
+        <box size="0.05 0.02 0.1"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.75 0.75 0.75 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="claw_joint2" type="revolute">
+    <parent link="claw_base"/>
+    <child link="claw_finger2"/>
+    <origin xyz="-0.03 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="0" effort="1.0" velocity="1.0"/>
+  </joint>
+
+</robot>
