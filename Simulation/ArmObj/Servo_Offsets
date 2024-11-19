@@ -1,0 +1,16 @@
+Robot correct offsets for joints.
+
+
+[0]  Wood Base      -> Metal Base     = { 0.0,   0.0,   0.0225}
+[1]  Metal Base     -> Servo Base     = { 0.0,   0.0,   0.041}
+[2]  Servo Base     -> Servo Shoulder = { 0.0,   0.0,   0.03825}
+[3]  Servo Shoulder -> H-Bracket      = { 0.0,   0.0,   0.0}
+[4]  H-Bracket      -> Servo Elbow    = { 0.0,   0.0,   0.105}
+[5]  Servo Elbow    -> Forearm        = { 0.0,   0.0,   0.0475}
+[6]  Forearm        -> Servo-WristP   = { 0.0,   0.0,   0.0775}
+[7]  Servo-WristP   -> U-Bracket      = { 0.0,   0.0,   0.0}
+[8]  U-Bracket      -> Servo-WristR   = { 0.0,   0.0,   0.039}
+[9]  Servo-WristR   -> Claw-Base      = {-0.011, 0.0,   0.023}
+[10] Claw-Base      -> Servo-Claw     = { 0.005, 0.031, 0.03}
+[11] Claw-Base      -> ClawR          = {-0.025, 0.0,   0.03}
+[12] Claw-Base      -> ClawL          = { 0.005, 0.0,   0.03}
