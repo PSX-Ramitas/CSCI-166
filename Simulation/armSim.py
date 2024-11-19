@@ -25,3 +25,9 @@ class ArmEnv:
         if self.physics_client is not None:
             p.resetSimulation()
             print("Simulation Reset")
+
+    def load(self):
+        p.setGravity(0,0,-9.8)
+        self.planeId = p.loadURDF("plane.urdf")
+        startPos = [0,0,0.1]
+        startOrientation = p.getQuaternionFromEuler([0,0,0])
