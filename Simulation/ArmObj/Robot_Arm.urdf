@@ -1,0 +1,417 @@
+<?xml version='1.0'?>
+<robot name="simple_claw_robot">
+
+    <!-- Wood Base Link -->
+    <link name="Base_Wood">
+        <inertial>
+            <mass value="1.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Base_Wood.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Base_Wood.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Metal Base Link -->
+    <link name="Base_Metal">
+        <inertial>
+            <mass value="0.15"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Base_Metal.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Base_Metal.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connecting wood to metal base does not move -->
+    <joint name="WoodtoMetal" type="fixed">
+        <parent link="Base_Wood"/>
+        <child link="Base_Metal"/>
+        <origin xyz="0 0 0.0225" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Base Link -->
+    <link name="Servo_Base">
+        <inertial>
+            <mass value="0.055"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Servo_Base.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Servo_Base.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Metal base to servo does not move -->
+    <joint name="MetaltoServo" type="fixed">
+        <parent link="Base_Metal"/>
+        <child link="Servo_Base"/>
+        <origin xyz="0 0 0.041" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Shoulder Link -->
+    <link name="Servo_Shoulder">
+        <inertial>
+            <mass value="0.055"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Servo_Shoulder.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Servo_Shoulder.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Base Servo to Shoulder servo -->
+    <joint name="BasetoShoulder" type="revolute">
+        <parent link="Servo_Base"/>
+        <child link="Servo_Shoulder"/>
+        <origin xyz="0 0 0.03825" rpy="0 0 0"/>
+        <axis xyz="0.0 0.0 1.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- H Bracket Link -->
+    <link name="Bracket_H">
+        <inertial>
+            <mass value="0.044"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Bracket_H.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Bracket_H.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Shoulder Servo to H Bracket pitchs up and down -->
+    <joint name="ShouldertoBracket" type="revolute">
+        <parent link="Servo_Shoulder"/>
+        <child link="Bracket_H"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="1.0 0.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Elbow Link -->
+    <link name="Servo_Elbow">
+        <inertial>
+            <mass value="0.055"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Servo_Elbow.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Servo_Elbow.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong H Bracket to Elbow pitches -->
+    <joint name="BrackettoElbow" type="revolute">
+        <parent link="Bracket_H"/>
+        <child link="Servo_Elbow"/>
+        <origin xyz="0 0 0.105" rpy="0 0 0"/>
+        <axis xyz="1.0 0.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Forearm Connector Link -->
+    <link name="Connector_Forearm">
+        <inertial>
+            <mass value="0.043"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Connector_Forearm.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Connector_Forearm.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Elbow Servo to Forearm Connector does not move -->
+    <joint name="ElbowtoForearm" type="fixed">
+        <parent link="Servo_Elbow"/>
+        <child link="Connector_Forearm"/>
+        <origin xyz="0 0 0.0475" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Wrist Pitch Link -->
+    <link name="Servo_WristPitch">
+        <inertial>
+            <mass value="0.055"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Servo_WristPitch.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Servo_WristPitch.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Forearm Connector to Wrist Pitch Servo does not move -->
+    <joint name="ForearmtoWristP" type="fixed">
+        <parent link="Connector_Forearm"/>
+        <child link="Servo_WristPitch"/>
+        <origin xyz="0 0 0.0775" rpy="0 0 0"/>
+    </joint>
+
+    <!-- U Bracket Link -->
+    <link name="Bracket_U">
+        <inertial>
+            <mass value="0.022"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Bracket_U.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Bracket_U.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Wrist Pitch Servo to U Bracket pitchs up and down -->
+    <joint name="WristPitchtoBracket" type="revolute">
+        <parent link="Servo_WristPitch"/>
+        <child link="Bracket_U"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="1.0 0.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Wrist Roll Link -->
+    <link name="Servo_WristRoll">
+        <inertial>
+            <mass value="0.039"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Servo_WristRoll.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Servo_WristRoll.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Wrist Bracket to  does not move relative to parent -->
+    <joint name="BrackettoWristRoll" type="fixed">
+        <parent link="Bracket_U"/>
+        <child link="Servo_WristRoll"/>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Base Link -->
+    <link name="Claw_Base">
+        <inertial>
+            <mass value="0.027"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_Base.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_Base.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Wrist Roll Servo to Claw Base up and down -->
+    <joint name="WristRolltoClawBase" type="revolute">
+        <parent link="Servo_WristRoll"/>
+        <child link="Claw_Base"/>
+        <origin xyz="-0.011 0 0.023" rpy="0 0 0"/>
+        <axis xyz="0.0 0.0 1.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Claw Base Link -->
+    <link name="Claw_Servo">
+        <inertial>
+            <mass value="0.039"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_Servo.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_Servo.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawBasetoClawServo" type="fixed">
+        <parent link="Claw_Base"/>
+        <child link="Claw_Servo"/>
+        <origin xyz="0.005 0.031 0.03" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Right Link -->
+    <link name="Claw_Right">
+        <inertial>
+            <mass value="0.025"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_Right.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_Right.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawBasetoClawRight" type="fixed">
+        <parent link="Claw_Base"/>
+        <child link="Claw_Right"/>
+        <origin xyz="0.005 0.0 0.03" rpy="0 0 0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Claw_Left">
+        <inertial>
+            <mass value="0.025"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_Left.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_Left.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawBasetoClawLeft" type="fixed">
+        <parent link="Claw_Base"/>
+        <child link="Claw_Left"/>
+        <origin xyz="-0.025 0.0 0.03" rpy="0 0 0"/>
+        <axis xyz="0.0 1.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+</robot>
