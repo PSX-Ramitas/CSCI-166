@@ -1,16 +1,38 @@
 Robot correct offsets for joints.
 
+joint indexing and offsets
 
-[0]  Wood Base      -> Metal Base     = { 0.0,   0.0,   0.0225}
-[1]  Metal Base     -> Servo Base     = { 0.0,   0.0,   0.041}
-[2]  Servo Base     -> Servo Shoulder = { 0.0,   0.0,   0.03825}
-[3]  Servo Shoulder -> H-Bracket      = { 0.0,   0.0,   0.0}
-[4]  H-Bracket      -> Servo Elbow    = { 0.0,   0.0,   0.105}
-[5]  Servo Elbow    -> Forearm        = { 0.0,   0.0,   0.0475}
-[6]  Forearm        -> Servo-WristP   = { 0.0,   0.0,   0.0775}
-[7]  Servo-WristP   -> U-Bracket      = { 0.0,   0.0,   0.0}
-[8]  U-Bracket      -> Servo-WristR   = { 0.0,   0.0,   0.039}
-[9]  Servo-WristR   -> Claw-Base      = {-0.011, 0.0,   0.023}
-[10] Claw-Base      -> Servo-Claw     = { 0.005, 0.031, 0.03}
-[11] Claw-Base      -> ClawR          = {-0.025, 0.0,   0.03}
-[12] Claw-Base      -> ClawL          = { 0.005, 0.0,   0.03}
+[0]  Wood Base      -> Metal Base     = { 0.0,    0.0,    0.0225}
+[1]  Metal Base     -> Servo Base     = { 0.0,    0.0,    0.041}
+[2]  Servo Base     -> Servo Shoulder = { 0.0,    0.0,    0.03825}
+[3]  Servo Shoulder -> H-Bracket      = { 0.0,    0.0,    0.0}
+[4]  H-Bracket      -> Servo Elbow    = { 0.0,    0.0,    0.105}
+[5]  Servo Elbow    -> Forearm        = { 0.0,    0.0,    0.0475}
+[6]  Forearm        -> Servo-WristP   = { 0.0,    0.0,    0.0775}
+[7]  Servo-WristP   -> U-Bracket      = { 0.0,    0.0,    0.0}
+[8]  U-Bracket      -> Servo-WristR   = { 0.0,    0.0,    0.039}
+[9]  Servo-WristR   -> Claw-Base      = {-0.011,  0.0,    0.023}
+[10] Claw-Base      -> Servo-Claw     = { 0.005,  0.031,  0.03}
+[11] Claw-Base      -> ClawR          = {-0.025,  0.0,    0.03}
+[12] Claw-Base      -> ClawL          = { 0.005,  0.0,    0.03}
+
+[13] ClawL          -> Claw-PadL      = {-0.0145, 0.0,    0.08}
+[14] ClawR          -> Claw-PadR      = { 0.0145, 0.0,    0.08}
+
+[15] Servo-Claw     -> Lidar-Base     = { 0.0125, 0.005,  0.0125}
+[16] Lidar-Base     -> Lidar-Lense    = { 0.0,    0.0,    0.0075}
+
+[17] Wood Base      -> Camera Arm     = { 0.123, -0.215,  0.0075}
+[18] Camera Arm     -> Camera Mount   = { 0.0,    0.0,    0.45}
+[19] Camera Mount   -> Camera         = { 0.0,    0.0025, 0.03}
+
+
+
+
+
+claw left  { 0.005, 0.0, 0.42375 m}
+claw right {-0.025, 0.0, 0.42375 m}
+
+claw servo {0.005, 0.031, 0.42375 m}
+
+camera arm 123g
