@@ -140,7 +140,7 @@
         <child link="Bracket_H"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <axis xyz="1.0 0.0 0.0"/>
-        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+        <limit lower="-1.57" upper="1.57" effort="100.0" velocity="0.0"/>
     </joint>
 
     <!-- Servo Elbow Link -->
@@ -375,10 +375,10 @@
     </link>
 
     <!-- Joint connectiong Claw Base to Claw Servo does not move -->
-    <joint name="ClawBasetoClawRight" type="fixed">
+    <joint name="ClawBasetoClawRight" type="revolute">
         <parent link="Claw_Base"/>
         <child link="Claw_Right"/>
-        <origin xyz="0.005 0.0 0.03" rpy="0 0 0"/>
+        <origin xyz="-0.025 0.0 0.03" rpy="0 0 0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
@@ -406,12 +406,219 @@
     </link>
 
     <!-- Joint connectiong Claw Base to Claw Servo does not move -->
-    <joint name="ClawBasetoClawLeft" type="fixed">
+    <joint name="ClawBasetoClawLeft" type="revolute">
         <parent link="Claw_Base"/>
         <child link="Claw_Left"/>
-        <origin xyz="-0.025 0.0 0.03" rpy="0 0 0"/>
+        <origin xyz="0.005 0.0 0.03" rpy="0 0 0"/>
         <axis xyz="0.0 1.0 0.0"/>
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Claw_PadL">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_PadL.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_PadL.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawLefttoClawPad" type="fixed">
+        <parent link="Claw_Left"/>
+        <child link="Claw_PadL"/>
+        <origin xyz="-0.0145 0.0 0.08" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Claw_PadR">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Claw_PadR.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Claw_PadR.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawRighttoClawPad" type="fixed">
+        <parent link="Claw_Right"/>
+        <child link="Claw_PadR"/>
+        <origin xyz="0.0145 0.0 0.08" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Lidar_Base">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Lidar_Base.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Lidar_Base.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="ClawServotoLidarBase" type="fixed">
+        <parent link="Claw_Servo"/>
+        <child link="Lidar_Base"/>
+        <origin xyz="0.0125 0.005 0.0125" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Lidar_Lense">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Lidar_Lense.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Lidar_Lense.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="LidarBasetoLidarLense" type="fixed">
+        <parent link="Lidar_Base"/>
+        <child link="Lidar_Lense"/>
+        <origin xyz="0.0 0.0 0.0075" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Camera_Arm">
+        <inertial>
+            <mass value="0.123"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Camera_Arm.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Camera_Arm.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="BaseWoodtoCameraArm" type="revolute">
+        <parent link="Base_Wood"/>
+        <child link="Camera_Arm"/>
+        <origin xyz="0.123 -0.215 0.0075" rpy="0 0 0"/>
+        <axis xyz="0.0 0.0 1.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Camera_Mount">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Camera_Mount.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Camera_Mount.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="CameraArmtoCameraMount" type="revolute">
+        <parent link="Camera_Arm"/>
+        <child link="Camera_Mount"/>
+        <origin xyz="0.0 0.0 0.45" rpy="0 0 0"/>
+        <axis xyz="1.0 0.0 0.0"/>
+        <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
+    </joint>
+
+    <!-- Servo Claw Left Link -->
+    <link name="Camera">
+        <inertial>
+            <mass value="0.001"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <mesh filename="Camera.obj"/>
+            </geometry>
+            <material name="dark_gray">
+                <color rgba="0.4 0.4 0.4 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="Camera.obj"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <joint name="CameraMounttoCamera" type="fixed">
+        <parent link="Camera_Mount"/>
+        <child link="Camera"/>
+        <origin xyz="0.0 0.0025 0.03" rpy="0 0 0"/>
     </joint>
 
 </robot>
