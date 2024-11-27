@@ -28,6 +28,10 @@ class ArmEnv:
         # corresponds to servo ids
         self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
+        self.reward = 0
+        self.phase = 0
+        self.current_state = None
+
     def connect(self):
         mode = p.GUI if self.gui else p.DIRECT
         self.physics_client = p.connect(mode)
@@ -74,27 +78,6 @@ class ArmEnv:
             targetPosition=self.cameraPitch,    # Target joint angle in radians
             force=500            # Maximum force to apply
         )
-        self.setMotorVelocity()
-    
-    def compensateGravity(self):
-        for i in range(7):
-            joint_state = p.getJointState(self.armId, self.ServoIds[i])
-            joint_position = joint_state[0]
-
-            # Calculate the mass of the link
-            link_mass = p.getDynamicsInfo(self.armId, self.ServoIds[i])[0]  # Mass of the link
-
-            # Calculate the torque required to counteract gravity
-            # Using mass * gravity to find the gravitational force on the link
-            gravity_torque = link_mass * 9.8  # Apply gravity force
-
-            # Apply torque to each joint to compensate for gravity
-            p.setJointMotorControl2(
-                self.armId,
-                self.ServoIds[i],
-                p.TORQUE_CONTROL,
-                force=gravity_torque
-            )
 
     def setMotorsPosition(self):
         # set default servo joint states
@@ -106,7 +89,7 @@ class ArmEnv:
                 self.ServoIds[i],            # Joint index
                 controlMode=p.POSITION_CONTROL,  # Position control mode
                 targetPosition=self.ServoAngles[i],    # Target joint angle in radians
-                force=10,            # Maximum force to apply
+                force=5,            # Maximum force to apply
                 positionGain=0.1,  # Increase stiffness
                 velocityGain=0.1   # Increase damping
             )
@@ -121,11 +104,64 @@ class ArmEnv:
                 self.ServoIds[i],            # Joint index
                 controlMode=p.VELOCITY_CONTROL,  # Position control mode
                 targetVelocity=0,
-                force=100,            # Maximum force to apply
+                force=10,            # Maximum force to apply
             )
     
-    def updatePosition(self, action: int):
+    def updateServo(self, action: int, servo: int):
+        # if action is 1 then move by positive tenth of a degree
+        if (action == 1):
+            self.ServoIds[servo] += 0.00174533
+            if (self.ServoIds[servo] >= 1.57):  # check if went beyond limits
+                self.ServoIds[servo] -= 0.00174533
+                self.reward -= 10
+        
+        # if action is 2 then move by a negative tenth of a degree
+        elif (action == 2):
+            self.ServoIds[servo] -= 0.00174533
+            if (self.ServoIds[servo] <= -1.57): #check if went beyond limits
+                self.ServoIds[servo] += 0.00174533
+                self.reward -= 10
+    
+    def updateClawsServo(self, action: int):
+        # if action is 1 then move by positive tenth of a degree
+        if (action == 1):
+            self.ServoIds[5] += 0.00174533
+            self.ServoIds[6] -= 0.00174533
+            if (self.ServoIds[5] >= 0.785398):  # check if went beyond limits
+                self.ServoIds[5] -= 0.00174533
+                self.ServoIds[6] += 0.00174533
+                self.reward -= 10
+        
+        # if action is 2 then move by a negative tenth of a degree
+        elif (action == 2):
+            self.ServoIds[5] -= 0.00174533
+            self.ServoIds[6] += 0.00174533
+            if (self.ServoIds[5] <= 0): #check if went beyond limits
+                self.ServoIds[5] += 0.00174533
+                self.ServoIds[6] -= 0.00174533
+                self.reward -= 10
+    
+    def collisionCheck(self):
         i = 0
+
+    def takeAction(self, action: int):
+        self.reward = 0
+
+        control = self.convInttoBase3(action)
+
+        # loop through the servos updating positions
+        for i in range(5):
+            self.updateServo(control[i], i)
+        
+        # update claw seperately since it is two joints in simulation but one servo in real world
+        self.updateClawsServo(control[5])        
+        
+        # run simulation for a moment to let arm update itself
+        # check for collisions then and penalise for them
+        for i in range(10):
+            self.step()
+            self.collisionCheck()
+
 
     def step(self):
         self.setMotorsPosition()
@@ -136,7 +172,7 @@ class ArmEnv:
         camera_position, camera_orientation,_,_,_,_  = p.getLinkState(self.armId, 19)
 
         # set camera offset so it is not in the link
-        camera_offset = [0, 0.001, 0]
+        camera_offset = [0, 0.015, 0]
 
         # Calculate the camera's eye position by adding the offset to the robot's position
         eye_position = [camera_position[0] + camera_offset[0], 
@@ -150,8 +186,6 @@ class ArmEnv:
         Roll  = camera_orientation[1] * (180.0 / math.pi)
         Pitch = camera_orientation[0] * (180.0 / math.pi)
         Yaw   = camera_orientation[2] * (180.0 / math.pi)
-
-        print(camera_position)
         
         # Compute the view matrix (camera's position and orientation)
         view_matrix = p.computeViewMatrixFromYawPitchRoll(eye_position, 
@@ -201,6 +235,8 @@ env.load_environment()
 for i in range(1000):
     
     rgb_image = env.getCameraImage()
+
+    print(rgb_image.shape)
 
     # Convert the image from RGBA (4 channels) to RGB (3 channels)
     rgb_image = rgb_image[:, :, :3]
