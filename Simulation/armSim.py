@@ -12,22 +12,28 @@ class ArmEnv:
         self.physics_client = None
         self.planeId = None
         self.armId = None
+        self.cubeId = None
+        self.stepSize = 0.00872665
+        self.state = None
+        self.padTouch = False
+        self.finished = True
 
         # set up variables for camera
         self.cameraYawId = 17
         self.cameraPitchId = 18
-        self.cameraYaw = -0.5
-        self.cameraPitch = -1
+        self.cameraYaw = -0.3
+        self.cameraPitch = -0.8
 
         # an array of servo Ids
         # goes from base upward
         # last two are right claw and left claw
-        self.ServoIds = [2,3,4,7,9,11,12]
+        self.ServoIds = [2, 3, 4, 7, 9, 13, 15]
 
         # array for servo angles
         # corresponds to servo ids
-        self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3]
 
+        # variables to keep track of updates
         self.reward = 0
         self.phase = 0
         self.current_state = None
@@ -58,7 +64,17 @@ class ArmEnv:
         self.planeId = p.loadURDF("plane.urdf")
         startPos = [0,0,0.01]
         startOrientation = p.getQuaternionFromEuler([0,0,0])
-        self.armId = p.loadURDF("ArmObj/Robot_Arm.urdf", startPos, startOrientation)
+        self.armId = p.loadURDF("ArmObj/Robot_Arm.urdf", startPos, startOrientation, useFixedBase=True)
+        self.cubeId = p.loadURDF("ArmObj/Cube.urdf", [0.4,0.0,0.05])
+
+        # Get the total number of joints (which is also the number of child links)
+        num_joints = p.getNumJoints(self.armId)
+
+
+        # Enable collisions between all links of the same object
+        for joint_index in range(num_joints):
+            # Setting collision filter to allow self-collision (i.e., link with itself)
+            p.setCollisionFilterGroupMask(self.armId, joint_index, -1, -1)  # Enable self-collision for all links
 
         # Set the joint angle (position control mode)
         # move camera yaw to correct position
@@ -79,6 +95,8 @@ class ArmEnv:
             force=500            # Maximum force to apply
         )
 
+        self.setMotorsPosition()
+
     def setMotorsPosition(self):
         # set default servo joint states
 
@@ -89,9 +107,9 @@ class ArmEnv:
                 self.ServoIds[i],            # Joint index
                 controlMode=p.POSITION_CONTROL,  # Position control mode
                 targetPosition=self.ServoAngles[i],    # Target joint angle in radians
-                force=5,            # Maximum force to apply
-                positionGain=0.1,  # Increase stiffness
-                velocityGain=0.1   # Increase damping
+                force=100,            # Maximum force to apply
+                positionGain=1,  # Increase stiffness
+                velocityGain=1   # Increase damping
             )
 
     def setMotorVelocity(self):
@@ -110,57 +128,140 @@ class ArmEnv:
     def updateServo(self, action: int, servo: int):
         # if action is 1 then move by positive tenth of a degree
         if (action == 1):
-            self.ServoIds[servo] += 0.00174533
-            if (self.ServoIds[servo] >= 1.57):  # check if went beyond limits
-                self.ServoIds[servo] -= 0.00174533
+            self.ServoAngles[servo] -= self.stepSize
+            if (self.ServoAngles[servo] <= -1.57):  # check if went beyond limits
                 self.reward -= 10
+                return False
         
         # if action is 2 then move by a negative tenth of a degree
         elif (action == 2):
-            self.ServoIds[servo] -= 0.00174533
-            if (self.ServoIds[servo] <= -1.57): #check if went beyond limits
-                self.ServoIds[servo] += 0.00174533
+            self.ServoIds[servo] += self.stepSize
+            if (self.ServoAngles[servo] >= 1.57): #check if went beyond limits
                 self.reward -= 10
+                return False
+            
+        return True
     
     def updateClawsServo(self, action: int):
         # if action is 1 then move by positive tenth of a degree
         if (action == 1):
-            self.ServoIds[5] += 0.00174533
-            self.ServoIds[6] -= 0.00174533
-            if (self.ServoIds[5] >= 0.785398):  # check if went beyond limits
-                self.ServoIds[5] -= 0.00174533
-                self.ServoIds[6] += 0.00174533
+            self.ServoAngles[5] -= self.stepSize
+            self.ServoAngles[6] += self.stepSize
+            if (self.ServoAngles[5] <= 0.0):  # check if went beyond limits
                 self.reward -= 10
+                return False
         
         # if action is 2 then move by a negative tenth of a degree
         elif (action == 2):
-            self.ServoIds[5] -= 0.00174533
-            self.ServoIds[6] += 0.00174533
-            if (self.ServoIds[5] <= 0): #check if went beyond limits
-                self.ServoIds[5] += 0.00174533
-                self.ServoIds[6] -= 0.00174533
+            self.ServoAngles[5] += self.stepSize
+            self.ServoAngles[6] -= self.stepSize
+            if (self.ServoAngles[5] >= 0.785398): #check if went beyond limits
                 self.reward -= 10
+                return False
+        
+        return True
     
     def collisionCheck(self):
-        i = 0
+        contact_points = p.getContactPoints()
+        self.padTouch = False
+
+        for contact in contact_points:
+            if contact[1] == 0:
+                if contact[4] != -1:
+                    self.reward -= 10
+                    return False
+            elif contact[1] == 1:
+                if contact[3] != 14 and contact[3] != 15:
+                    self.reward -= 10
+                    return False
+                elif contact[3] == 14 and contact[3] == 15:
+                    self.padTouch = True
+            
+        return True
+
 
     def takeAction(self, action: int):
         self.reward = 0
 
+        prev_pos = self.ServoAngles
         control = self.convInttoBase3(action)
+        take_step = True
+        pos_ClawL = p.getLinkState(self.armId, 14)[0]
+        pos_ClawR = p.getLinkState(self.armId, 15)[0]
+
+        prev_pos_C = ((pos_ClawL - pos_ClawR) * 0.5) + pos_ClawL
 
         # loop through the servos updating positions
         for i in range(5):
-            self.updateServo(control[i], i)
+            take_step = (take_step and self.updateServo(control[i], i))
         
         # update claw seperately since it is two joints in simulation but one servo in real world
-        self.updateClawsServo(control[5])        
+        take_step = (take_step and self.updateClawsServo(control[5]))
         
-        # run simulation for a moment to let arm update itself
-        # check for collisions then and penalise for them
-        for i in range(10):
-            self.step()
-            self.collisionCheck()
+        if take_step:
+            # run simulation for a moment to let arm update itself
+            # check for collisions then and penalise for them
+            for i in range(5):
+                self.step()
+                take_step = (take_step and self.collisionCheck())
+                if not take_step:
+                    break
+
+            if take_step:
+                if self.phase == 0:
+                    prev_dist = 0.3 - prev_pos[6]
+                    dist = 0.3 - self.ServoAngles[6]
+                    if prev_dist > dist:
+                        self.reward += 1
+                    
+                    pos1 = p.getLinkState(self.armId, 14)[0]
+                    pos2 = p.getLinkState(self.armId, 15)[0]
+
+                    posC = ((pos1 - pos2) * 0.5) + pos1
+
+                    cube = p.getLinkState(self.cubeId, -1)
+
+                    dist1 = math.dist(cube, prev_pos_C)
+                    dist2 = math.dist(cube, posC)
+
+                    if dist1 > dist2:
+                        self.reward += 2
+                    
+                    if dist2 < 0.01:
+                        self.phase = 1
+
+                elif self.phase == 1:
+                    prev_dist = 0.3 - prev_pos[6]
+                    dist = 0.3 - self.ServoAngles[6]
+                    if prev_dist < dist:
+                        self.reward += 1
+                    
+                    pos1 = p.getLinkState(self.armId, 14)[0]
+                    pos2 = p.getLinkState(self.armId, 15)[0]
+
+                    posC = ((pos1 - pos2) * 0.5) + pos1
+
+                    cube = p.getLinkState(self.cubeId, -1)
+
+                    dist1 = math.dist(cube, prev_pos_C)
+                    dist2 = math.dist(cube, posC)
+
+                    if dist1 > dist2:
+                        self.reward -= 1
+                    
+                    if self.padTouch:
+                        self.phase = 2
+
+                elif self.phase == 2:
+                    i = 0
+                elif self.phase == 3:
+                    i = 0
+
+        else:
+            self.ServoAngles = prev_pos
+
+        
+        return 
 
 
     def step(self):
@@ -231,12 +332,18 @@ env = ArmEnv()
 env.connect()
 env.load_environment()
 
+# Get the total number of joints in the robot
+num_links = p.getNumJoints(env.armId)
+
+# Enable debugging visualization for collision shapes
+#p.setPhysicsEngineParameter(enableConeFriction=1)  # Optional: Visualization for debugging
+
+# After loading the URDF and before stepping the simulation, you can visualize the collision shapes:
+p.configureDebugVisualizer(p.COV_ENABLE_WIREFRAME, 0)
 
 for i in range(1000):
     
     rgb_image = env.getCameraImage()
-
-    print(rgb_image.shape)
 
     # Convert the image from RGBA (4 channels) to RGB (3 channels)
     rgb_image = rgb_image[:, :, :3]
@@ -247,6 +354,13 @@ for i in range(1000):
     #plt.show()
 
     env.step()
+
+    contact_points = p.getContactPoints(env.armId, env.armId)
+    if len(contact_points) > 0:
+        print(f"Number of Contact Points: {len(contact_points)}")
+        for contact in contact_points:
+            print(f"Contact Between point {contact[4]} and {contact[3]}")
+
     #time.sleep(1./240.)
 
 env.disconnect()

@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <robot name="simple_claw_robot">
 
-    <!-- Wood Base Link -->
+    <!-- Wood Base Link [0] -->
     <link name="Base_Wood">
         <inertial>
             <mass value="1.0"/>  <!-- Mass in kilograms -->
@@ -23,7 +23,7 @@
         </collision>
     </link>
 
-    <!-- Metal Base Link -->
+    <!-- Metal Base Link [1] -->
     <link name="Base_Metal">
         <inertial>
             <mass value="0.15"/>  <!-- Mass in kilograms -->
@@ -45,14 +45,14 @@
         </collision>
     </link>
 
-    <!-- Joint connecting wood to metal base does not move -->
+    <!-- Joint connecting wood to metal base does not move [0] -->
     <joint name="WoodtoMetal" type="fixed">
         <parent link="Base_Wood"/>
         <child link="Base_Metal"/>
         <origin xyz="0 0 0.0225" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Base Link -->
+    <!-- Servo Base Link [2] -->
     <link name="Servo_Base">
         <inertial>
             <mass value="0.055"/>  <!-- Mass in kilograms -->
@@ -74,14 +74,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Metal base to servo does not move -->
+    <!-- Joint connectiong Metal base to servo does not move [1] -->
     <joint name="MetaltoServo" type="fixed">
         <parent link="Base_Metal"/>
         <child link="Servo_Base"/>
         <origin xyz="0 0 0.041" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Shoulder Link -->
+    <!-- Servo Shoulder Link [3] -->
     <link name="Servo_Shoulder">
         <inertial>
             <mass value="0.055"/>  <!-- Mass in kilograms -->
@@ -103,7 +103,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Base Servo to Shoulder servo -->
+    <!-- Joint connectiong Base Servo to Shoulder servo [2] -->
     <joint name="BasetoShoulder" type="revolute">
         <parent link="Servo_Base"/>
         <child link="Servo_Shoulder"/>
@@ -112,7 +112,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- H Bracket Link -->
+    <!-- H Bracket Link [4] -->
     <link name="Bracket_H">
         <inertial>
             <mass value="0.044"/>  <!-- Mass in kilograms -->
@@ -134,7 +134,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Shoulder Servo to H Bracket pitchs up and down -->
+    <!-- Joint connectiong Shoulder Servo to H Bracket pitchs up and down [3] -->
     <joint name="ShouldertoBracket" type="revolute">
         <parent link="Servo_Shoulder"/>
         <child link="Bracket_H"/>
@@ -143,7 +143,7 @@
         <limit lower="-1.57" upper="1.57" effort="100.0" velocity="0.0"/>
     </joint>
 
-    <!-- Servo Elbow Link -->
+    <!-- Servo Elbow Link [5] -->
     <link name="Servo_Elbow">
         <inertial>
             <mass value="0.055"/>  <!-- Mass in kilograms -->
@@ -165,7 +165,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong H Bracket to Elbow pitches -->
+    <!-- Joint connectiong H Bracket to Elbow pitches [4] -->
     <joint name="BrackettoElbow" type="revolute">
         <parent link="Bracket_H"/>
         <child link="Servo_Elbow"/>
@@ -174,7 +174,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Forearm Connector Link -->
+    <!-- Forearm Connector Link [6] -->
     <link name="Connector_Forearm">
         <inertial>
             <mass value="0.043"/>  <!-- Mass in kilograms -->
@@ -196,14 +196,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Elbow Servo to Forearm Connector does not move -->
+    <!-- Joint connectiong Elbow Servo to Forearm Connector does not move [5] -->
     <joint name="ElbowtoForearm" type="fixed">
         <parent link="Servo_Elbow"/>
         <child link="Connector_Forearm"/>
         <origin xyz="0 0 0.0475" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Wrist Pitch Link -->
+    <!-- Servo Wrist Pitch Link [7] -->
     <link name="Servo_WristPitch">
         <inertial>
             <mass value="0.055"/>  <!-- Mass in kilograms -->
@@ -225,14 +225,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Forearm Connector to Wrist Pitch Servo does not move -->
+    <!-- Joint connectiong Forearm Connector to Wrist Pitch Servo does not move [6] -->
     <joint name="ForearmtoWristP" type="fixed">
         <parent link="Connector_Forearm"/>
         <child link="Servo_WristPitch"/>
         <origin xyz="0 0 0.0775" rpy="0 0 0"/>
     </joint>
 
-    <!-- U Bracket Link -->
+    <!-- U Bracket Link [8] -->
     <link name="Bracket_U">
         <inertial>
             <mass value="0.022"/>  <!-- Mass in kilograms -->
@@ -254,7 +254,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Wrist Pitch Servo to U Bracket pitchs up and down -->
+    <!-- Joint connectiong Wrist Pitch Servo to U Bracket pitchs up and down [7] -->
     <joint name="WristPitchtoBracket" type="revolute">
         <parent link="Servo_WristPitch"/>
         <child link="Bracket_U"/>
@@ -263,7 +263,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Wrist Roll Link -->
+    <!-- Servo Wrist Roll Link [9] -->
     <link name="Servo_WristRoll">
         <inertial>
             <mass value="0.039"/>  <!-- Mass in kilograms -->
@@ -285,14 +285,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Wrist Bracket to  does not move relative to parent -->
+    <!-- Joint connectiong Wrist Bracket to  does not move relative to parent [8] -->
     <joint name="BrackettoWristRoll" type="fixed">
         <parent link="Bracket_U"/>
         <child link="Servo_WristRoll"/>
         <origin xyz="0 0 0.05" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Base Link -->
+    <!-- Servo Claw Base Link [10] -->
     <link name="Claw_Base">
         <inertial>
             <mass value="0.027"/>  <!-- Mass in kilograms -->
@@ -314,7 +314,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Wrist Roll Servo to Claw Base up and down -->
+    <!-- Joint connectiong Wrist Roll Servo to Claw Base up and down [9] -->
     <joint name="WristRolltoClawBase" type="revolute">
         <parent link="Servo_WristRoll"/>
         <child link="Claw_Base"/>
@@ -323,7 +323,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Claw Base Link -->
+    <!-- Servo Claw Base Link [11] -->
     <link name="Claw_Servo">
         <inertial>
             <mass value="0.039"/>  <!-- Mass in kilograms -->
@@ -345,14 +345,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [10] -->
     <joint name="ClawBasetoClawServo" type="fixed">
         <parent link="Claw_Base"/>
         <child link="Claw_Servo"/>
         <origin xyz="0.005 0.031 0.03" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Right Link -->
+    <!-- Servo Claw Right Link [12] -->
     <link name="Claw_Right">
         <inertial>
             <mass value="0.025"/>  <!-- Mass in kilograms -->
@@ -374,7 +374,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does move [11] -->
     <joint name="ClawBasetoClawRight" type="revolute">
         <parent link="Claw_Base"/>
         <child link="Claw_Right"/>
@@ -383,7 +383,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [13] -->
     <link name="Claw_Left">
         <inertial>
             <mass value="0.025"/>  <!-- Mass in kilograms -->
@@ -405,7 +405,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does move [12] -->
     <joint name="ClawBasetoClawLeft" type="revolute">
         <parent link="Claw_Base"/>
         <child link="Claw_Left"/>
@@ -414,7 +414,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [14] -->
     <link name="Claw_PadL">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -436,14 +436,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [13] -->
     <joint name="ClawLefttoClawPad" type="fixed">
         <parent link="Claw_Left"/>
         <child link="Claw_PadL"/>
         <origin xyz="-0.0145 0.0 0.08" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [15] -->
     <link name="Claw_PadR">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -465,14 +465,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [14] -->
     <joint name="ClawRighttoClawPad" type="fixed">
         <parent link="Claw_Right"/>
         <child link="Claw_PadR"/>
         <origin xyz="0.0145 0.0 0.08" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [16] -->
     <link name="Lidar_Base">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -494,14 +494,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [15] -->
     <joint name="ClawServotoLidarBase" type="fixed">
         <parent link="Claw_Servo"/>
         <child link="Lidar_Base"/>
         <origin xyz="0.0125 0.005 0.0125" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [17] -->
     <link name="Lidar_Lense">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -523,14 +523,14 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [16] -->
     <joint name="LidarBasetoLidarLense" type="fixed">
         <parent link="Lidar_Base"/>
         <child link="Lidar_Lense"/>
         <origin xyz="0.0 0.0 0.0075" rpy="0 0 0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [18] -->
     <link name="Camera_Arm">
         <inertial>
             <mass value="0.123"/>  <!-- Mass in kilograms -->
@@ -552,7 +552,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [17] -->
     <joint name="BaseWoodtoCameraArm" type="revolute">
         <parent link="Base_Wood"/>
         <child link="Camera_Arm"/>
@@ -561,7 +561,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [19] -->
     <link name="Camera_Mount">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -583,7 +583,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [18] -->
     <joint name="CameraArmtoCameraMount" type="revolute">
         <parent link="Camera_Arm"/>
         <child link="Camera_Mount"/>
@@ -592,7 +592,7 @@
         <limit lower="-1.57" upper="1.57" effort="1.0" velocity="1.0"/>
     </joint>
 
-    <!-- Servo Claw Left Link -->
+    <!-- Servo Claw Left Link [20] -->
     <link name="Camera">
         <inertial>
             <mass value="0.001"/>  <!-- Mass in kilograms -->
@@ -614,7 +614,7 @@
         </collision>
     </link>
 
-    <!-- Joint connectiong Claw Base to Claw Servo does not move -->
+    <!-- Joint connectiong Claw Base to Claw Servo does not move [19] -->
     <joint name="CameraMounttoCamera" type="fixed">
         <parent link="Camera_Mount"/>
         <child link="Camera"/>
