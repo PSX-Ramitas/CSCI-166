@@ -3,10 +3,9 @@ import math
 import time
 import numpy as np
 import pybullet_data
-import matplotlib.pyplot as plt
 
 class ArmEnv:
-    def __init__(self, gui=True):
+    def __init__(self, gui=True, mSteps=500):
         # initialize variables
         self.gui = gui
         self.physics_client = None
@@ -14,9 +13,7 @@ class ArmEnv:
         self.armId = None
         self.cubeId = None
         self.stepSize = 0.00872665
-        self.state = None
-        self.padTouch = False
-        self.finished = True
+        self.actionSpace = 729
 
         # set up variables for camera
         self.cameraYawId = 17
@@ -31,12 +28,16 @@ class ArmEnv:
 
         # array for servo angles
         # corresponds to servo ids
-        self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3]
+        self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         # variables to keep track of updates
         self.reward = 0
         self.phase = 0
-        self.current_state = None
+        self.state = None
+        self.padTouch = False
+        self.finished = False
+        self.steps = 0
+        self.maxSteps = mSteps
 
     def connect(self):
         mode = p.GUI if self.gui else p.DIRECT
@@ -65,7 +66,7 @@ class ArmEnv:
         startPos = [0,0,0.01]
         startOrientation = p.getQuaternionFromEuler([0,0,0])
         self.armId = p.loadURDF("ArmObj/Robot_Arm.urdf", startPos, startOrientation, useFixedBase=True)
-        self.cubeId = p.loadURDF("ArmObj/Cube.urdf", [0.4,0.0,0.05])
+        self.cubeId = p.loadURDF("ArmObj/Cube.urdf", [0.0,0.5,0.05])
 
         # Get the total number of joints (which is also the number of child links)
         num_joints = p.getNumJoints(self.armId)
@@ -95,7 +96,35 @@ class ArmEnv:
             force=500            # Maximum force to apply
         )
 
-        self.setMotorsPosition()
+        for i in range(50):
+            self.step()
+
+    def resetSim(self):
+        if self.physics_client is not None:
+            p.resetSimulation()
+
+            # array for servo angles
+            # corresponds to servo ids
+            self.ServoAngles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+            # variables to keep track of updates
+            self.reward = 0
+            self.phase = 0
+            self.state = None
+            self.padTouch = False
+            self.finished = False
+            self.steps = 0
+
+            self.load_environment()
+
+            rgb_image = self.getCameraImage()
+
+            # Convert the image from RGBA (4 channels) to RGB (3 channels)
+            rgb_image = rgb_image[:, :, :3]
+
+            self.state = [rgb_image, self.ServoAngles]
+
+        return self.state
 
     def setMotorsPosition(self):
         # set default servo joint states
@@ -135,7 +164,7 @@ class ArmEnv:
         
         # if action is 2 then move by a negative tenth of a degree
         elif (action == 2):
-            self.ServoIds[servo] += self.stepSize
+            self.ServoAngles[servo] += self.stepSize
             if (self.ServoAngles[servo] >= 1.57): #check if went beyond limits
                 self.reward -= 10
                 return False
@@ -145,17 +174,17 @@ class ArmEnv:
     def updateClawsServo(self, action: int):
         # if action is 1 then move by positive tenth of a degree
         if (action == 1):
-            self.ServoAngles[5] -= self.stepSize
-            self.ServoAngles[6] += self.stepSize
-            if (self.ServoAngles[5] <= 0.0):  # check if went beyond limits
+            self.ServoAngles[5] += self.stepSize
+            self.ServoAngles[6] -= self.stepSize
+            if (self.ServoAngles[5] >= 0):  # check if went beyond limits
                 self.reward -= 10
                 return False
         
         # if action is 2 then move by a negative tenth of a degree
         elif (action == 2):
-            self.ServoAngles[5] += self.stepSize
-            self.ServoAngles[6] -= self.stepSize
-            if (self.ServoAngles[5] >= 0.785398): #check if went beyond limits
+            self.ServoAngles[5] -= self.stepSize
+            self.ServoAngles[6] += self.stepSize
+            if (self.ServoAngles[5] <= -0.785398): #check if went beyond limits
                 self.reward -= 10
                 return False
         
@@ -182,14 +211,15 @@ class ArmEnv:
 
     def takeAction(self, action: int):
         self.reward = 0
+        self.steps += 1
 
-        prev_pos = self.ServoAngles
+        prev_pos = self.ServoAngles.copy()
         control = self.convInttoBase3(action)
         take_step = True
-        pos_ClawL = p.getLinkState(self.armId, 14)[0]
-        pos_ClawR = p.getLinkState(self.armId, 15)[0]
+        pos_ClawL = np.array(p.getLinkState(self.armId, 14)[0])
+        pos_ClawR = np.array(p.getLinkState(self.armId, 15)[0])
 
-        prev_pos_C = ((pos_ClawL - pos_ClawR) * 0.5) + pos_ClawL
+        prev_pos_C = ((pos_ClawL - pos_ClawR) * 0.5) + pos_ClawR
 
         # loop through the servos updating positions
         for i in range(5):
@@ -205,21 +235,24 @@ class ArmEnv:
                 self.step()
                 take_step = (take_step and self.collisionCheck())
                 if not take_step:
+                    print("Collision")
                     break
+            
+            # if there is a collision don't do this and simply back step
 
             if take_step:
                 if self.phase == 0:
-                    prev_dist = 0.3 - prev_pos[6]
-                    dist = 0.3 - self.ServoAngles[6]
+                    prev_dist = abs(0.3 - prev_pos[6])
+                    dist = abs(0.3 - self.ServoAngles[6])
                     if prev_dist > dist:
                         self.reward += 1
                     
-                    pos1 = p.getLinkState(self.armId, 14)[0]
-                    pos2 = p.getLinkState(self.armId, 15)[0]
+                    pos1 = np.array(p.getLinkState(self.armId, 14)[0])
+                    pos2 = np.array(p.getLinkState(self.armId, 15)[0])
 
-                    posC = ((pos1 - pos2) * 0.5) + pos1
+                    posC = ((pos1 - pos2) * 0.5) + pos2
 
-                    cube = p.getLinkState(self.cubeId, -1)
+                    cube, _ = p.getBasePositionAndOrientation(self.cubeId)
 
                     dist1 = math.dist(cube, prev_pos_C)
                     dist2 = math.dist(cube, posC)
@@ -227,21 +260,21 @@ class ArmEnv:
                     if dist1 > dist2:
                         self.reward += 2
                     
-                    if dist2 < 0.01:
+                    if dist2 < 0.02:
                         self.phase = 1
 
                 elif self.phase == 1:
-                    prev_dist = 0.3 - prev_pos[6]
-                    dist = 0.3 - self.ServoAngles[6]
+                    prev_dist = abs(0.3 - prev_pos[6])
+                    dist = abs(0.3 - self.ServoAngles[6])
                     if prev_dist < dist:
                         self.reward += 1
                     
-                    pos1 = p.getLinkState(self.armId, 14)[0]
-                    pos2 = p.getLinkState(self.armId, 15)[0]
+                    pos1 = np.array(p.getLinkState(self.armId, 14)[0])
+                    pos2 = np.array(p.getLinkState(self.armId, 15)[0])
 
-                    posC = ((pos1 - pos2) * 0.5) + pos1
+                    posC = ((pos1 - pos2) * 0.5) + pos2
 
-                    cube = p.getLinkState(self.cubeId, -1)
+                    cube, _ = p.getBasePositionAndOrientation(self.cubeId)
 
                     dist1 = math.dist(cube, prev_pos_C)
                     dist2 = math.dist(cube, posC)
@@ -256,12 +289,20 @@ class ArmEnv:
                     i = 0
                 elif self.phase == 3:
                     i = 0
+            else:
+                self.ServoAngles = prev_pos
 
         else:
             self.ServoAngles = prev_pos
-
         
-        return 
+        rgb_image = self.getCameraImage()
+
+        # Convert the image from RGBA (4 channels) to RGB (3 channels)
+        rgb_image = rgb_image[:, :, :3]
+        
+        observation = [rgb_image, self.ServoAngles]
+
+        return observation, self.reward, self.finished
 
 
     def step(self):
@@ -311,7 +352,7 @@ class ArmEnv:
 
         return np.array(image[2])  # Return the RGB image (height x width x 4)
     
-    def convInttoBase3(x: int):
+    def convInttoBase3(self, x: int):
         out = [0,0,0,0,0,0]
         if x > 0 and x < 730:
             j = 5
@@ -327,6 +368,7 @@ class ArmEnv:
             p.disconnect()
 
 
+"""
 #testing will be removed on final implementation
 env = ArmEnv()
 env.connect()
@@ -341,29 +383,49 @@ num_links = p.getNumJoints(env.armId)
 # After loading the URDF and before stepping the simulation, you can visualize the collision shapes:
 p.configureDebugVisualizer(p.COV_ENABLE_WIREFRAME, 0)
 
-for i in range(1000):
-    
-    rgb_image = env.getCameraImage()
+# Get the number of joints
+num_joints = p.getNumJoints(env.armId)
+print(f"Number of joints: {num_joints}")
 
-    # Convert the image from RGBA (4 channels) to RGB (3 channels)
-    rgb_image = rgb_image[:, :, :3]
-    
-    # Display the captured image
-    #plt.imshow(rgb_image)
-    #plt.title("Camera View from Link's Perspective")
-    #plt.show()
+# Loop through all joints to print joint info
+for joint in range(num_joints):
+    joint_info = p.getJointInfo(env.armId, joint)
+    print(f"\nJoint {joint}:")
+    print(f"  Name: {joint_info[1].decode('utf-8')}")
+    print(f"  Type: {joint_info[2]}")
+    print(f"  Damping: {joint_info[6]}")
+    print(f"  Friction: {joint_info[7]}")
+    print(f"  Lower Limit: {joint_info[8]}")
+    print(f"  Upper Limit: {joint_info[9]}")
+    print(f"  Max Force: {joint_info[10]}")
+    print(f"  Max Velocity: {joint_info[11]}")
+    print(f"  Parent Link Index: {joint_info[16]}")
 
-    env.step()
+for i in range(50):
 
-    contact_points = p.getContactPoints(env.armId, env.armId)
-    if len(contact_points) > 0:
-        print(f"Number of Contact Points: {len(contact_points)}")
-        for contact in contact_points:
-            print(f"Contact Between point {contact[4]} and {contact[3]}")
+    observation, reward, terminated = env.takeAction(360)
 
-    #time.sleep(1./240.)
+    #print(f"observation shape: {observation[0].shape}, {observation[1].shape}")
+    #print(f"reward: {reward}")
+    #print(f"terminated: {terminated}")
+
+    time.sleep(1./240.)
+
+env.resetSim()
+time.sleep(2)
+
+for i in range(50):
+
+    observation, reward, terminated = env.takeAction(360)
+
+    #print(f"observation shape: {observation[0].shape}, {observation[1].shape}")
+    #print(f"reward: {reward}")
+    #print(f"terminated: {terminated}")
+
+    time.sleep(1./240.)
 
 env.disconnect()
 
-test = env.convInttoBase3(728)
+test = env.convInttoBase3(360)
 print(test)
+"""
