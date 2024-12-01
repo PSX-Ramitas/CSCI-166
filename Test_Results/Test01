@@ -1,0 +1,69 @@
+Test 1
+
+11/29/2024 -> 11/30/2024
+
+Hardware:
+	Google Colab
+		Runtime Device: A100 GPU / High RAM
+	
+	Pytorch Device = CPU
+
+--------------------------------------------------------------------------------
+
+Parameters
+
+Network:
+6 layers
+	conv2d with 3 input channels and 6 output channels, with kernel size 3
+		max pooling kernel size of 2
+		relu
+	conv2d with 6 input channels and 3 output channels, with kernel size 3
+		max pooling kernel size of 2
+		relu
+		flatten(1)
+		concatenate with servo angles
+	Linear(23371, 19683)
+		relu
+	Linear(19683, 6561)
+		relu
+	Linear(6561, 2187)
+		relu
+	Linear(2187, 729)
+		sofmax with dimension of 1
+	return
+
+BATCH_SIZE = 128
+GAMMA = 0.99
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 1000
+TAU = 0.005
+LR = 1e-4
+
+num_episodes = 10
+
+max_steps_per_episode = 500
+
+Runtime: 10 hours 18 minutes 25 seconds
+
+Total rewards: [570, -422, -871, -452, 647, 501, 789, 762, 798, 809]
+Episode durations: [502, 502, 502, 502, 502, 502, 502, 502, 502, 502]
+Max phase: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+Notes:
+		The reward system gives rewards in phase 0 just for moving closer to
+	block and opening the claw.  There is no penalty for closing the claw and
+	no penalty for moving away from the block.
+		None of the episodes made it past phase 0 so those settings are
+	irrelivant.
+
+Ideas for improvment:
+	Work to get gpu working to reduce compute time
+	do more convolutional layers to further reduce complexity before doing fully
+		connected layers
+	? Possibly add negative reinforcment for moving away from block.  at least
+		enough that it can't simply learn to bob back and forth.
+	Also change the last activation function from softmax to relu as it isn't a
+		classification problem
+	
+--------------------------------------------------------------------------------

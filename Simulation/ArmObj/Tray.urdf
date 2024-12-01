@@ -1,0 +1,142 @@
+<?xml version='1.0'?>
+<robot name="Tray">
+
+    <!-- Wood Base Link [0] -->
+    <link name="Base">
+        <inertial>
+            <mass value="50.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.08 0.08 0.005"/>
+            </geometry>
+            <material name="ligt_gray">
+                <color rgba="0.7 0.7 0.7 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.08 0.08 0.005"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Wood Base Link [0] -->
+    <link name="Right">
+        <inertial>
+            <mass value="50.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.005 0.08 0.02"/>
+            </geometry>
+            <material name="ligt_gray">
+                <color rgba="0.7 0.7 0.7 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.005 0.08 0.02"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Wood Base Link [0] -->
+    <link name="Left">
+        <inertial>
+            <mass value="50.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.005 0.08 0.02"/>
+            </geometry>
+            <material name="ligt_gray">
+                <color rgba="0.7 0.7 0.7 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.005 0.08 0.02"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Wood Base Link [0] -->
+    <link name="Top">
+        <inertial>
+            <mass value="50.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.09 0.005 0.02"/>
+            </geometry>
+            <material name="ligt_gray">
+                <color rgba="0.7 0.7 0.7 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.09 0.005 0.02"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Wood Base Link [0] -->
+    <link name="Bottom">
+        <inertial>
+            <mass value="50.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.09 0.005 0.02"/>
+            </geometry>
+            <material name="ligt_gray">
+                <color rgba="0.7 0.7 0.7 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.09 0.005 0.02"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- Joint connecting wood to metal base does not move [0] -->
+    <joint name="Base_Right" type="fixed">
+        <parent link="Base"/>
+        <child link="Right"/>
+        <origin xyz="0.0425 0 0.0075" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Joint connecting wood to metal base does not move [1] -->
+    <joint name="Base_Left" type="fixed">
+        <parent link="Base"/>
+        <child link="Left"/>
+        <origin xyz="-0.0425 0 0.0075" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Joint connecting wood to metal base does not move [1] -->
+    <joint name="Base_Top" type="fixed">
+        <parent link="Base"/>
+        <child link="Top"/>
+        <origin xyz="0 0.0425 0.0075" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Joint connecting wood to metal base does not move [1] -->
+    <joint name="Base_Bottom" type="fixed">
+        <parent link="Base"/>
+        <child link="Bottom"/>
+        <origin xyz="0 -0.0425 0.0075" rpy="0 0 0"/>
+    </joint>
+
+</robot>

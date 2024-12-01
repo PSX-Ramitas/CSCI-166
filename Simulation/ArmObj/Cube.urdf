@@ -2,7 +2,7 @@
 <robot name="Cube">
 
     <!-- Wood Base Link [0] -->
-    <link name="Base_Wood">
+    <link name="Base_Cube">
         <inertial>
             <mass value="1.0"/>  <!-- Mass in kilograms -->
             <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
@@ -10,7 +10,7 @@
         </inertial>
         <visual>
             <geometry>
-                <box size="0.04 0.04 0.04"/>
+                <box size="0.02 0.02 0.02"/>
             </geometry>
             <material name="red">
                 <color rgba="1.0 0.0 0.0 1.0"/>
@@ -18,7 +18,7 @@
         </visual>
         <collision>
             <geometry>
-                <box size="0.04 0.04 0.04"/>
+                <box size="0.02 0.02 0.02"/>
             </geometry>
         </collision>
     </link>

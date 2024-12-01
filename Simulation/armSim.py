@@ -12,8 +12,13 @@ class ArmEnv:
         self.planeId = None
         self.armId = None
         self.cubeId = None
+        self.Tray = None
         self.stepSize = 0.00872665
         self.actionSpace = 729
+        self.cubeStartPos = [0.25, 0.0, 0.05]
+        self.trayStartPos = [0.0, 0.3, 0.01]
+        self.endPoint = self.trayStartPos.copy()
+        self.endPoint[2] += 0.2
 
         # set up variables for camera
         self.cameraYawId = 17
@@ -36,6 +41,8 @@ class ArmEnv:
         self.state = None
         self.padTouch = False
         self.finished = False
+        self.CubeTouchTray = False
+        self.CubeTouchFloor = False
         self.steps = 0
         self.maxSteps = mSteps
 
@@ -54,11 +61,6 @@ class ArmEnv:
             self.armId = None
             print("diconnected from pybullet simulation")
 
-    def reset(self):
-        if self.physics_client is not None:
-            p.resetSimulation()
-            print("Simulation Reset")
-
     def load_environment(self):
         # Set the initial conditions of the simulation
         p.setGravity(0,0,-9.8)
@@ -66,7 +68,8 @@ class ArmEnv:
         startPos = [0,0,0.01]
         startOrientation = p.getQuaternionFromEuler([0,0,0])
         self.armId = p.loadURDF("ArmObj/Robot_Arm.urdf", startPos, startOrientation, useFixedBase=True)
-        self.cubeId = p.loadURDF("ArmObj/Cube.urdf", [0.0,0.5,0.05])
+        self.cubeId = p.loadURDF("ArmObj/Cube.urdf", self.cubeStartPos)
+        self.TrayId = p.loadURDF("ArmObj/Tray.urdf", self.trayStartPos)
 
         # Get the total number of joints (which is also the number of child links)
         num_joints = p.getNumJoints(self.armId)
@@ -113,6 +116,8 @@ class ArmEnv:
             self.state = None
             self.padTouch = False
             self.finished = False
+            self.CubeTouchTray = False
+            self.CubeTouchFloor = False
             self.steps = 0
 
             self.load_environment()
@@ -195,16 +200,42 @@ class ArmEnv:
         self.padTouch = False
 
         for contact in contact_points:
-            if contact[1] == 0:
-                if contact[4] != -1:
+            # if contact is with the ground
+            if contact[1] == self.planeId:
+                # if contact is with robot
+                if contact[2] == self.armId:
+                    # check that contact is not with the base
+                    if contact[4] != -1:
+                      self.reward -= 10
+                      return False
+              
+                # check if contact is with the cube
+                # also check what phase it is, only matter if in phase 3
+                # to not let cube drag on floor
+                elif contact[2] == self.cubeId:
+                    self.CubeTouchFloor = True                   
+
+            # check if it is the robot contacting something else
+            # also contact will not be with ground since that would appear first
+            elif contact[1] == self.armId:
+                # make sure it is the cube that is being touched
+                if contact[2] == self.cubeId:
+                    # if the contact is not with the touch pad, if so return false and have penalty
+                    if contact[3] != 14 and contact[3] != 15:
+                        self.reward -= 10
+                        return False
+                    # if it is both touch pad touching the cube then set flag to true
+                    elif contact[3] == 14 and contact[3] == 15:
+                        self.padTouch = True
+                else:
                     self.reward -= 10
                     return False
-            elif contact[1] == 1:
-                if contact[3] != 14 and contact[3] != 15:
-                    self.reward -= 10
-                    return False
-                elif contact[3] == 14 and contact[3] == 15:
-                    self.padTouch = True
+            
+            elif contact[1] == self.cubeId:
+                if contact[2] == self.TrayId:
+                    if contact[4] == -1:
+                        self.CubeTouchTray = True
+                    
             
         return True
 
@@ -218,6 +249,7 @@ class ArmEnv:
         take_step = True
         pos_ClawL = np.array(p.getLinkState(self.armId, 14)[0])
         pos_ClawR = np.array(p.getLinkState(self.armId, 15)[0])
+        prev_cube = p.getBasePositionAndOrientation(self.cubeId)
 
         prev_pos_C = ((pos_ClawL - pos_ClawR) * 0.5) + pos_ClawR
 
@@ -235,65 +267,104 @@ class ArmEnv:
                 self.step()
                 take_step = (take_step and self.collisionCheck())
                 if not take_step:
-                    print("Collision")
                     break
             
             # if there is a collision don't do this and simply back step
 
             if take_step:
+                pos1 = np.array(p.getLinkState(self.armId, 14)[0])
+                pos2 = np.array(p.getLinkState(self.armId, 15)[0])
+
+                posC = ((pos1 - pos2) * 0.5) + pos2
+
+                cube, _ = p.getBasePositionAndOrientation(self.cubeId)
+
+                dist1 = math.dist(cube, prev_pos_C)
+                dist2 = math.dist(cube, posC)
+
                 if self.phase == 0:
                     prev_dist = abs(0.3 - prev_pos[6])
                     dist = abs(0.3 - self.ServoAngles[6])
                     if prev_dist > dist:
                         self.reward += 1
-                    
-                    pos1 = np.array(p.getLinkState(self.armId, 14)[0])
-                    pos2 = np.array(p.getLinkState(self.armId, 15)[0])
-
-                    posC = ((pos1 - pos2) * 0.5) + pos2
-
-                    cube, _ = p.getBasePositionAndOrientation(self.cubeId)
-
-                    dist1 = math.dist(cube, prev_pos_C)
-                    dist2 = math.dist(cube, posC)
+                    elif prev_dist < dist:
+                        self.reward -= 1
 
                     if dist1 > dist2:
                         self.reward += 2
+                    elif dist1 < dist2:
+                        self.reward -= 2
                     
                     if dist2 < 0.02:
                         self.phase = 1
+                        self.reward += 20
 
                 elif self.phase == 1:
                     prev_dist = abs(0.3 - prev_pos[6])
                     dist = abs(0.3 - self.ServoAngles[6])
                     if prev_dist < dist:
                         self.reward += 1
-                    
-                    pos1 = np.array(p.getLinkState(self.armId, 14)[0])
-                    pos2 = np.array(p.getLinkState(self.armId, 15)[0])
-
-                    posC = ((pos1 - pos2) * 0.5) + pos2
-
-                    cube, _ = p.getBasePositionAndOrientation(self.cubeId)
-
-                    dist1 = math.dist(cube, prev_pos_C)
-                    dist2 = math.dist(cube, posC)
+                    elif prev_dist > dist:
+                        self.reward -= 1
 
                     if dist1 > dist2:
+                        self.reward += 1
+                    elif dist1 < dist2:
                         self.reward -= 1
+                    
+                    if dist2 > 0.03:
+                        self.phase = 1
+                        self.reward -= 10
                     
                     if self.padTouch:
                         self.phase = 2
 
                 elif self.phase == 2:
-                    i = 0
+
+                    if dist2 > dist1:
+                        self.reward -= 1
+                    
+                    if self.CubeTouchFloor:
+                        self.reward -= 1
+                    
+                    if dist2 > 0.03:
+                        self.phase = 1
+                        self.reward -= 10
+
+                    dist3 = math.dist(cube, self.endPoint)
+                    if dist3 < 0.02:
+                        self.reward += 20
+                        self.phase = 3
+
                 elif self.phase == 3:
-                    i = 0
+                    prev_dist = abs(0.3 - prev_pos[6])
+                    dist = abs(0.3 - self.ServoAngles[6])
+                    if prev_dist > dist:
+                        self.reward += 1
+                    elif prev_dist < dist:
+                        self.reward -= 1
+
+                    if dist2 > 0.03 and self.CubeTouchFloor:
+                        self.phase = 1
+                        self.reward -= 10
+                    
+                    tray, _ = p.getBasePositionAndOrientation(self.TrayId)
+                    dist4 = math.dist(cube, tray)
+                    dist5 = math.dist(prev_cube, tray)
+                    if dist4 < dist5:
+                        self.reward += 1
+                    
+                    if self.CubeTouchTray:
+                        self.reward += 100
+                        self.finished = True
+
             else:
                 self.ServoAngles = prev_pos
 
         else:
             self.ServoAngles = prev_pos
+
+        self.CubeTouchFloor = False
         
         rgb_image = self.getCameraImage()
 
@@ -361,6 +432,10 @@ class ArmEnv:
                 x = x // 3
                 j -= 1
         return out
+    
+    def setEndPoint(self):
+        self.endPoint, _ = p.getBasePositionAndOrientation(self.TrayId)
+        self.endPoint[2] += 0.2
 
     def __del__(self):
         # ensure that simulation is ended on death of object
@@ -400,19 +475,6 @@ for joint in range(num_joints):
     print(f"  Max Force: {joint_info[10]}")
     print(f"  Max Velocity: {joint_info[11]}")
     print(f"  Parent Link Index: {joint_info[16]}")
-
-for i in range(50):
-
-    observation, reward, terminated = env.takeAction(360)
-
-    #print(f"observation shape: {observation[0].shape}, {observation[1].shape}")
-    #print(f"reward: {reward}")
-    #print(f"terminated: {terminated}")
-
-    time.sleep(1./240.)
-
-env.resetSim()
-time.sleep(2)
 
 for i in range(50):
 
