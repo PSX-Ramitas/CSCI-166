@@ -1,0 +1,26 @@
+<?xml version='1.0'?>
+<robot name="Cube">
+
+    <!-- Wood Base Link [0] -->
+    <link name="Base_Wood">
+        <inertial>
+            <mass value="1.0"/>  <!-- Mass in kilograms -->
+            <origin xyz="0 0 0" rpy="0 0 0"/>  <!-- Center of mass position (relative to link frame) -->
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>  <!-- Inertia matrix -->
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="0.04 0.04 0.04"/>
+            </geometry>
+            <material name="red">
+                <color rgba="1.0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.04 0.04 0.04"/>
+            </geometry>
+        </collision>
+    </link>
+
+</robot>
