@@ -109,6 +109,12 @@ EPS_DECAY = 25000
 TAU = 0.005
 LR = 1e-4
 MEMORYSIZE = 1000
+MAXEPISODEDURATION = 1000
+
+if torch.cuda.is_available() or torch.backends.mps.is_available():
+    num_episodes = 50
+else:
+    num_episodes = 1
 
 # number of actions
 n_actions = env.actionSpace
@@ -200,11 +206,6 @@ def optimize_model():
     torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
-if torch.cuda.is_available() or torch.backends.mps.is_available():
-    num_episodes = 1
-else:
-    num_episodes = 1
-
 for i_episodes in range(num_episodes):
     # append total reward with 0 and add two it each step of the episode
     total_rewards.append(0)
@@ -258,7 +259,7 @@ for i_episodes in range(num_episodes):
         if prev_phase < env.phase:
             max_phase[i_episodes] = env.phase
 
-        if terminated or t > 500:
+        if terminated or t > MAXEPISODEDURATION:
             episode_durations.append(t + 1)
             end_phase.append(env.phase)
             time_per_phase[i_episodes][env.phase] = t + 1
@@ -290,8 +291,8 @@ with open(testInfo_path, "w") as file:
     file.write("Test Information for " + testId)
 
 with open(testInfo_path, "a") as file:
-    file.write("\nbatch_size, Gamma, Eps_start, Eps_end, Eps_decay, Tau, Learning_rate, memory_size")
-    file.write(f"\n{BATCH_SIZE}, {GAMMA}, {EPS_START}, {EPS_DECAY}, {TAU}, {LR}, {MEMORYSIZE}")
+    file.write("\nnum_episodes, batch_size, Gamma, Eps_start, Eps_end, Eps_decay, Tau, Learning_rate, memory_size, max_episode_duration")
+    file.write(f"\n{num_episodes}, {BATCH_SIZE}, {GAMMA}, {EPS_START}, {EPS_DECAY}, {TAU}, {LR}, {MEMORYSIZE}, {MAXEPISODEDURATION}")
     file.write("\nepisode, total_rewards, duration, max_phase, end_phase, time_per_phase")
     for i in range(num_episodes):
         file.write(f"\n{i}, {total_rewards[i]}, {episode_durations[i]}, {max_phase[i]}, {end_phase[i]}, {time_per_phase[i]}")
