@@ -100,6 +100,7 @@ class ArmDQN(nn.Module):
 # EPS_DECAY controls the rate of exponential decay of epsilon, higher means a slower decay
 # TAU is the update rate of the target network
 # LR is the learning rate of the ``AdamW`` optimizer
+# MEMORYSIZE is the amount of total replay memory used for batch sampling
 BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
@@ -107,6 +108,7 @@ EPS_END = 0.05
 EPS_DECAY = 25000
 TAU = 0.005
 LR = 1e-4
+MEMORYSIZE = 1000
 
 # number of actions
 n_actions = env.actionSpace
@@ -127,7 +129,7 @@ target_net = ArmDQN(n_actions).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-memory = ReplayMemory(1000)
+memory = ReplayMemory(MEMORYSIZE)
 
 steps_done = [ 0, 0, 0, 0]
 
@@ -288,6 +290,8 @@ with open(testInfo_path, "w") as file:
     file.write("Test Information for " + testId)
 
 with open(testInfo_path, "a") as file:
+    file.write("\nbatch_size, Gamma, Eps_start, Eps_end, Eps_decay, Tau, Learning_rate, memory_size")
+    file.write(f"\n{BATCH_SIZE}, {GAMMA}, {EPS_START}, {EPS_DECAY}, {TAU}, {LR}, {MEMORYSIZE}")
     file.write("\nepisode, total_rewards, duration, max_phase, end_phase, time_per_phase")
     for i in range(num_episodes):
         file.write(f"\n{i}, {total_rewards[i]}, {episode_durations[i]}, {max_phase[i]}, {end_phase[i]}, {time_per_phase[i]}")
