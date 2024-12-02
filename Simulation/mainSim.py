@@ -61,11 +61,7 @@ class ArmDQN(nn.Module):
         self.layer2 = nn.Conv2d(3, 3, kernel_size=3, padding=1)
         # second layer has 6 input channels and goes to 3 output channels
         self.layer3 = nn.Conv2d(3, 3, kernel_size=3, padding=1)
-        # dropout for convolution
-        self.drop = nn.Dropout2d()
-        # layer for switching to fully connected linear network
-        # is set to none since input must be set dynamically based on the convolutional network
-        # the input amount is correct for initial input of size [ 3, 480, 270]
+        # first linear layer
         self.fc1 = nn.Linear(5947, 5832)
         # second linear layer
         self.fc2 = nn.Linear(5832, 2916)
@@ -80,11 +76,9 @@ class ArmDQN(nn.Module):
         x = F.max_pool2d(x, 2)
         x = F.relu(x)
         x = self.layer2(x)
-        x = self.drop(x)
         x = F.max_pool2d(x, 2)
         x = F.relu(x)
         x = self.layer3(x)
-        x = self.drop(x)
         x = F.max_pool2d(x, 2)
         x = F.relu(x)
         x = x.flatten(1)
@@ -110,7 +104,7 @@ BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 1000
+EPS_DECAY = 25000
 TAU = 0.005
 LR = 1e-4
 
@@ -133,18 +127,18 @@ target_net = ArmDQN(n_actions).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-memory = ReplayMemory(10000)
+memory = ReplayMemory(1000)
 
-steps_done = 0
+steps_done = [ 0, 0, 0, 0]
 
 # select which action to take next
 # either us the policy_net output or get rand action
-def select_action(state1, state2):
+def select_action(state1, state2, phase):
     global steps_done
     sample = random.random()
     eps_threshold = EPS_END + (EPS_START - EPS_END) * \
-        math.exp(-1. * steps_done/ EPS_DECAY)
-    steps_done += 1
+        math.exp(-1. * steps_done[phase]/ EPS_DECAY)
+    steps_done[phase] += 1
 
     if sample > eps_threshold:
         with torch.no_grad():
@@ -225,7 +219,7 @@ for i_episodes in range(num_episodes):
     for t in count():
         prev_phase = env.phase
 
-        action = select_action(state1, state2)
+        action = select_action(state1, state2, env.phase)
         observation, reward, terminated = env.takeAction(action.item())
         total_rewards[i_episodes] += reward
         reward = torch.tensor([reward], device=device)
