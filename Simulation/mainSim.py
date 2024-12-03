@@ -15,6 +15,8 @@ import torch.nn.functional as F
 import os
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
+import armNN
+
 import armSim
 
 # load connect to 
@@ -48,50 +50,6 @@ class ReplayMemory(object):
     
     def __len__(self):
         return len(self.memory)
-
-
-# create a class for the nueral network model
-class ArmDQN(nn.Module):
-
-    def __init__(self, n_actions):
-        super(ArmDQN, self).__init__()
-        # first layer goes from 3 input channels to 6 output channels
-        self.layer1 = nn.Conv2d(3, 3, kernel_size=3, padding=1)
-        # second layer has 6 input channels and goes to 3 output channels
-        self.layer2 = nn.Conv2d(3, 3, kernel_size=3, padding=1)
-        # second layer has 6 input channels and goes to 3 output channels
-        self.layer3 = nn.Conv2d(3, 3, kernel_size=3, padding=1)
-        # first linear layer
-        self.fc1 = nn.Linear(5947, 5832)
-        # second linear layer
-        self.fc2 = nn.Linear(5832, 2916)
-        # third linear layer
-        self.fc3 = nn.Linear(2916, 1458)
-        # fourth linear layer
-        self.fc4 = nn.Linear(1458, n_actions)
-
-        
-    def forward(self, x, y):
-        x = self.layer1(x)
-        x = F.max_pool2d(x, 2)
-        x = F.relu(x)
-        x = self.layer2(x)
-        x = F.max_pool2d(x, 2)
-        x = F.relu(x)
-        x = self.layer3(x)
-        x = F.max_pool2d(x, 2)
-        x = F.relu(x)
-        x = x.flatten(1)
-        x = torch.cat((x, y), dim=1)
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
-        x = F.relu(x)
-        x = self.fc4(x)
-        x = F.relu(x)
-        return x
     
 # BATCH_SIZE is the number of transitions sampled from the replay buffer
 # GAMMA is the discount factor as mentioned in the previous section
@@ -107,12 +65,12 @@ EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 25000
 TAU = 0.005
-LR = 1e-4
-MEMORYSIZE = 1000
-MAXEPISODEDURATION = 1000
+LR = 1.5e-4
+MEMORYSIZE = 500
+MAXEPISODEDURATION = 500
 
 if torch.cuda.is_available() or torch.backends.mps.is_available():
-    num_episodes = 50
+    num_episodes = 100
 else:
     num_episodes = 1
 
@@ -130,8 +88,8 @@ end_phase = []
 # list of time per phase
 time_per_phase = []
 
-policy_net = ArmDQN(n_actions).to(device)
-target_net = ArmDQN(n_actions).to(device)
+policy_net = armNN.ArmDQN(n_actions).to(device)
+target_net = armNN.ArmDQN(n_actions).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 
 optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
@@ -263,12 +221,19 @@ for i_episodes in range(num_episodes):
             episode_durations.append(t + 1)
             end_phase.append(env.phase)
             time_per_phase[i_episodes][env.phase] = t + 1
+
+            print(f"Total Reward: {total_rewards[i_episodes]}")
+            print(f"Episode Duration: {t + 1}")
+            print(f"Max Phase: {max_phase[i_episodes]}")
+            print(f"End Phase: {end_phase[i_episodes]}")
+            print(f"Time Per Phase: {time_per_phase[i_episodes]}")
+            print("")
             break
 
 
 year = datetime.today()
 time = datetime.now().time()
-testId = "Test02"
+testId = "Test03"
 
 formatted_year = year.strftime("%Y-%m-%d")
 formatted_time = time.strftime("%H:%M:%S")
@@ -292,10 +257,10 @@ with open(testInfo_path, "w") as file:
 
 with open(testInfo_path, "a") as file:
     file.write("\nnum_episodes, batch_size, Gamma, Eps_start, Eps_end, Eps_decay, Tau, Learning_rate, memory_size, max_episode_duration")
-    file.write(f"\n{num_episodes}, {BATCH_SIZE}, {GAMMA}, {EPS_START}, {EPS_DECAY}, {TAU}, {LR}, {MEMORYSIZE}, {MAXEPISODEDURATION}")
-    file.write("\nepisode, total_rewards, duration, max_phase, end_phase, time_per_phase")
+    file.write(f"\n{num_episodes}, {BATCH_SIZE}, {GAMMA}, {EPS_START}, {EPS_END}, {EPS_DECAY}, {TAU}, {LR}, {MEMORYSIZE}, {MAXEPISODEDURATION}")
+    file.write("\nepisode, total_rewards, duration, max_phase, end_phase, time_in_phase1, time_in_phase2, time_in_phase3, time_in_phase4")
     for i in range(num_episodes):
-        file.write(f"\n{i}, {total_rewards[i]}, {episode_durations[i]}, {max_phase[i]}, {end_phase[i]}, {time_per_phase[i]}")
+        file.write(f"\n{i}, {total_rewards[i]}, {episode_durations[i]}, {max_phase[i]}, {end_phase[i]}, {time_per_phase[i][0]}, {time_per_phase[i][1]}, {time_per_phase[i][2]}, {time_per_phase[i][3]}")
 
 print(f"Total rewards: {total_rewards}")
 print(f"Episode durations: {episode_durations}")
