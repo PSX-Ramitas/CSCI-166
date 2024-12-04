@@ -1,4 +1,5 @@
 # Utilizing Deep Q-Learning for Efficient Object Sorting with a Robotic Arm
+Authors: Takara Busby, Tomas Garcia Gallardo, Marcus Ramirez
 CSU Fresno - CSCI 166 - Fall Semester 2024
 
 Robotics is a growing field in today's market and the growing capabilities of machine learning has been a major boon for it.  In this project we attempt to create a neural network that can control a robotic arm comprised of six servos to sort colored cubes.  To do this we used Deep Q Learning and a simulation for the training of the model.  The model used CNN's and fully connected layers in order to map features from input of a camera and servo angles.  The simulation was done in PyBullet and the network made with PyTorch.  Testing showed that the model was very susceptible to changes in learning rate and we actually had problems getting it to converge with it, oscillating between good rewards and bad rewards while remaining in the initial phase.  This implies the model requires further fine-tuning and testing in order to get it to a state where it can be used in the real world.
