@@ -1,3 +1,6 @@
+# THis code uses GPIO zero to adjust six servos based off of recived positions
+# Designed for eventual use in the final robot
+
 import socket
 from gpiozero import Servo
 from time import sleep
